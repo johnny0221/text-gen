@@ -1,40 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Next.js + Supabase Boilerplate
 
-## Getting Started
+A modern boilerplate for building full-stack applications with Next.js and Supabase.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 🔐 Email/Password & Google OAuth authentication
+- 🛡️ Protected routes with server-side auth
+- 🎨 Beautiful UI with Tailwind CSS
+- 📱 Responsive design
+- 🚀 Next.js 15 + TypeScript
+
+## Quick Start
+
+1. **Clone & install**
+
+   ```bash
+   git clone <your-repo-url>
+   cd next-supabase
+   npm install
+   ```
+
+2. **Environment variables**
+   Create `.env.local`:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+3. **Run**
+   ```bash
+   npm run dev
+   ```
+
+## Setup Supabase
+
+1. Create project at [supabase.com](https://supabase.com)
+2. Copy URL and anon key from Settings > API
+3. Enable Google OAuth in Authentication > Providers (optional)
+
+## Project Structure
+
+```
+├── pages/
+│   ├── login.tsx          # Login with OAuth
+│   ├── private.tsx        # Protected page
+│   └── index.tsx          # Home page
+├── utils/supabase/        # Supabase clients
+└── styles/globals.css     # Tailwind styles
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Usage
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+### Protected Pages
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```typescript
+export async function getServerSideProps(context) {
+  const supabase = createClient(context);
+  const { data } = await supabase.auth.getUser();
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+  if (!data.user) {
+    return { redirect: { destination: '/login' } };
+  }
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  return { props: { user: data.user } };
+}
+```
 
-## Learn More
+### Supabase Client
 
-To learn more about Next.js, take a look at the following resources:
+```typescript
+import { createClient } from '@/utils/supabase/component';
+const supabase = createClient();
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push to GitHub
+2. Connect to Vercel
+3. Add environment variables
+4. Deploy!
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+MIT
