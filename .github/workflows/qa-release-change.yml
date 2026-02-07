@@ -1,0 +1,56 @@
+name: QA Release Changes
+
+on:
+  workflow_dispatch:
+    inputs:
+      label:
+        description: "PR label to filter (e.g. feature-marketplace)"
+        required: true
+      callback_url:
+        description: "ActivePieces webhook callback URL"
+        required: true
+
+jobs:
+  compute-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # GitHub CLI is needed by the script (gh pr view ...)
+      - name: Setup GitHub CLI
+        uses: cli/cli@v2
+        with:
+          version: latest
+
+      - name: Authenticate gh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth status
+
+      - name: Make script executable
+        run: chmod +x scripts/list-release-prs.sh
+
+      - name: Run QA release diff script
+        id: release_diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/list-release-prs.sh \
+            --from-tfvars \
+            --label "${{ inputs.label }}" \
+            > output.txt
+
+          echo "===== SCRIPT OUTPUT ====="
+          cat output.txt
+
+          # Convert plain text output into JSON for ActivePieces
+          jq -n --rawfile text output.txt '{ text: $text }' > payload.json
+
+      - name: Send result back to ActivePieces
+        run: |
+          curl -X POST "${{ inputs.callback_url }}" \
+            -H "Content-Type: application/json" \
+            --data @payload.json
