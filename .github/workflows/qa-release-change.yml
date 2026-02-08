@@ -9,6 +9,9 @@ on:
       callback_url:
         description: "ActivePieces webhook callback URL"
         required: true
+      slack_message_timestamp:
+        description: "Slack message timestamp to reference"
+        required: true
 
 jobs:
   compute-changes:
@@ -43,7 +46,11 @@ jobs:
           echo "===== SCRIPT OUTPUT ====="
           cat output.txt
 
-          cp output.txt payload.json
+          jq \
+            --arg slack_message_timestamp "${{ inputs.slack_message_timestamp }}" \
+            '. + {slack_message_timestamp: $slack_message_timestamp}' \
+            output.txt \
+            > payload.json
 
       - name: Send result back to ActivePieces
         run: |
